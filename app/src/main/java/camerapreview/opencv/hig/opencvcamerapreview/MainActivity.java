@@ -5,6 +5,10 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
@@ -34,27 +38,33 @@ public class MainActivity extends Activity {
     private static final int RESULT_LOAD_IMAGE2 = 2;
     private static final int ONMANAGER_INIT = 696969;
 
-    private Mat ImageMat,ImageMat2;
+    private Mat ImageMat,ImageMat2,ImageMat3,ImageMat4;
     private Bitmap img1,img2;
     private Button button1;
     private  TextView log;
     private int IMAGE_1 = R.drawable.iphone1;
-    private int IMAGE_2 = R.drawable.iphone1a;
+    private int IMAGE_2 = R.drawable.iphone1b;
     private ImageView imageView,imageView2;
     private Mini man;
+    private BitmapFactory.Options options;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS:
+                    options = new BitmapFactory.Options();
+                    options.inSampleSize = 6;
 
                     Log.i("OpenCV", "OpenCV loaded successfully");
                     img1 = BitmapFactory.decodeResource(getBaseContext().getResources(),
-                            IMAGE_1 );
+                            IMAGE_1, options);
+                   // img1 = toGrayscale(img1);
 
                     img2  = BitmapFactory.decodeResource(getBaseContext().getResources(),
-                            IMAGE_2 );
+                            IMAGE_2, options);
+                   // img2 = toGrayscale(img2);
+
 
                 case ONMANAGER_INIT:
                     Log.i("MOSBY","initialize image bitmap");
@@ -74,6 +84,23 @@ public class MainActivity extends Activity {
             ImageMat2 = new Mat(img2.getWidth(),img2.getHeight(), CvType.CV_8UC1);
         }
     };
+
+    public Bitmap toGrayscale(Bitmap bmpOriginal)
+    {
+        int width, height;
+        height = bmpOriginal.getHeight();
+        width = bmpOriginal.getWidth();
+
+        Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bmpGrayscale);
+        Paint paint = new Paint();
+        ColorMatrix cm = new ColorMatrix();
+        cm.setSaturation(0);
+        ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
+        paint.setColorFilter(f);
+        c.drawBitmap(bmpOriginal, 0, 0, paint);
+        return bmpGrayscale;
+    }
 
     @Override
     protected void onResume() {
@@ -197,13 +224,25 @@ public class MainActivity extends Activity {
     private void initProcess(){
         Utils.bitmapToMat(img1, ImageMat);
         Utils.bitmapToMat(img2, ImageMat2);
+        img1 = toGrayscale(img1);
+        img2 = toGrayscale(img2);
     }
 
     private void initFinal(){
-        man = new Mini(ImageMat,ImageMat2);
-        log.setText(man.getAnswer()+"");
+        man = new Mini();
+        if(man.compare(ImageMat,ImageMat2)) {
+            log.setText("similarity detected");
+        }
+        else{
+            Utils.bitmapToMat(img1, ImageMat);
+            Utils.bitmapToMat(img2, ImageMat2);
+            if(man.compare(ImageMat,ImageMat2)){
+                log.setText("similarity detected");
+            }else {
+                log.setText("no similarity detected");
+            }
+        }
     }
-
     @Override
     protected void onStart() {
         super.onStart();
@@ -229,5 +268,15 @@ public class MainActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        img1.recycle();
+        img1 = null;
+
+        img2.recycle();
+        img2 = null;
     }
 }

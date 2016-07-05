@@ -44,6 +44,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         android:src="@drawable/iphone1"
+
         />
 
     <ImageView
@@ -54,6 +55,7 @@
         android:layout_alignTop="@+id/imageView"
         android:layout_alignParentEnd="true"
         android:src="@drawable/iphone1a"
+
         />
     </LinearLayout>
 

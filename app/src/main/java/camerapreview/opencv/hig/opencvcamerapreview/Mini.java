@@ -17,18 +17,30 @@ import org.opencv.imgcodecs.Imgcodecs;
 public class Mini {
     public static String answer = "";
 
-    public Mini(Mat img1,Mat img2){
+    public Mini(){
 
-        int ret;
+      /*  int ret;
         ret = compareFeature(img1, img2);
         double s = ret/500.00;
-        if (ret > 0 &&s >= 0.05) {
-
+        if (true) {
             System.out.println("MOSBY: Two images are same. "+s);
             answer="Similarity detected "+s*100+"%";
         } else {
             System.out.println("MOSBY: Two images are different.");
             answer="No similarity detected";
+        }*/
+    }
+
+    public boolean compare(Mat img1,Mat img2){
+        int ret;
+        ret = compareFeature(img1, img2);
+        if(ret>0) {
+            answer = "Similarity detected" ;
+            return true;
+        }
+        else{
+            answer="No similarity detected";
+            return false;
         }
     }
 
